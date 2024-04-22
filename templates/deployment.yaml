@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langfuse.fullname" . }}
+  labels:
+    {{- include "langfuse.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "langfuse.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "langfuse.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "langfuse.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: NODE_ENV
+              value: "{{ .Values.nodeEnv }}"
+            - name: DATABASE_URL
+              value: "{{ include "langfuse.databaseUrl" .Values.database }}"
+            {{ if .Values.shadowDatabase -}}              
+            - name: SHADOW_DATABASE_URL
+              value: "{{ include "langfuse.databaseUrl" .Values.shadowDatabase }}"
+            {{ end -}}
+            - name: NEXTAUTH_URL
+              value: {{ if .Values.nextauthUrl}}"{{ .Values.nextauthUrl }}"{{ else }}"https://{{ .Values.host }}"{{ end }}
+            - name: NEXTAUTH_SECRET
+              value: "{{ .Values.nextauthSecret }}"
+            - name: NEXT_PUBLIC_SIGN_UP_DISABLED
+              value: "{{ .Values.nextPublicSignUpDisabled }}"
+            - name: SALT
+              value: "{{ .Values.salt }}"
+            - name: TELEMETRY_ENABLED
+              value: "{{ .Values.telemetryEnabled }}"
+            - name: LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES
+              value: "{{ .Values.enableExperimentalFeatures }}"
+            - name: AUTH_OKTA_CLIENT_ID
+              value: "{{ .Values.authOktaClientId }}"
+            - name: AUTH_OKTA_CLIENT_SECRET
+              value: "{{ .Values.authOktaClientSecret }}"
+            - name: AUTH_OKTA_ISSUER
+              value: "{{ .Values.authOktaIssuer }}"
+            - name: AUTH_GITHUB_CLIENT_ID
+              value: "{{ .Values.authGithubClientId }}"
+            - name: AUTH_GITHUB_CLIENT_SECRET
+              value: "{{ .Values.authGithubClientSecret }}"
+            - name: S3_ENDPOINT
+              value: "{{ .Values.s3Endpoint }}"
+            - name: S3_ACCESS_KEY_ID
+              value: "{{ .Values.s3AccessKeyId }}"
+            - name: S3_SECRET_ACCESS_KEY
+              value: "{{ .Values.s3SecretAccessKey }}"
+            - name: S3_BUCKET_NAME
+              value: "{{ .Values.s3BucketName }}"
+            - name: S3_REGION 
+              value: "{{ .Values.s3Region }}"
+              
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

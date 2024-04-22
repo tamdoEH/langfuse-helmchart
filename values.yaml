@@ -1,0 +1,121 @@
+# Default values for langfuse.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+fullnameOverride: ""
+
+nodeEnv: production
+
+database:
+  type: postgresql
+  user: postgres
+  password: postgres
+  host: db
+  port: 5432
+  name: postgres
+
+shadowDatabase: {} # check https://www.prisma.io/docs/orm/prisma-migrate/understanding-prisma-migrate/shadow-database#cloud-hosted-shadow-databases-must-be-created-manually
+  # provider: postgresql
+  # url: postgres://postgres:postgres@db:5432/postgres
+  # shadorDatabaseUrl: aws://us-east-1/arn:aws:rds:us-east-1:123456789012:cluster:my-cluster
+
+host: langfuse
+
+# If empty, defaults to "https://${host}/"
+nextauthUrl: ""
+nextauthSecret: mysecret
+nextPublicSignUpDisabled: false
+
+salt: ""
+telemetryEnabled: true
+enableExperimentalFeatures: false
+
+# s3
+s3Endpoint: ""
+s3AccessKeyId: ""
+s3SecretAccessKey: ""
+s3BucketName: ""
+s3Region: ""
+
+# Okta SSO
+authOktaClientId: ""
+authOktaClientSecret: ""
+authOktaIssuer: ""
+
+# Github SSO
+authGithubClientId: ""
+authGithubClientSecret: ""
+
+image:
+  repository: langfuse/langfuse
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2"
+
+imagePullSecrets: []
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: langfuse
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+httproute:
+  enabled: false
+  host: langfuse
+  gatewayName: ""
+
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
